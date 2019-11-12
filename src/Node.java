@@ -38,7 +38,22 @@ public class Node {
 			this.inputValue = inputValue;
 		}
 	}
-
+	public double getWeightedSum() {
+		double z = 0.0;
+		//calculate the weighted 
+		for(NodeWeightPair p : parents) {
+			z += (p.weight) * (p.node.inputValue); 
+		}
+		return z;		
+	}
+	public double getWeightDeltaSum() {
+		double z = 0.0;
+		//calculate the weighted 
+		for(NodeWeightPair p : parents) {
+			z += (p.weight) * (p.node.delta); 
+		}
+		return z;
+	}
 	/**
 	 * Calculate the output of a node. You can get this value by using getOutput()
 	 * 
@@ -51,7 +66,20 @@ public class Node {
 	public void calculateOutput() {
 		// if the node is a hidden or output node
 		if (type == 2 || type == 4) { // Not an input or bias node
-			// TODO: add code here
+			
+			
+			// use ReLU
+			if(type == 2) {
+				outputValue = Double.max(0.0, getWeightedSum());
+			}
+			// use Softmax
+			if(type == 4) {
+				
+				double ezj = Math.exp(getWeightedSum());
+				// need to normalize ezj
+				outputValue = ezj;
+			}
+			
 		}
 	}
 
@@ -67,18 +95,27 @@ public class Node {
 		}
 
 	}
-
+	
 	// Calculate the delta value of a node.
 	public void calculateDelta() {
 		if (type == 2 || type == 4) {
-			// TODO: add code here
+			// if this is a hidden layer node 
+			if(type == 2) {
+				delta = outputValue * getWeightDeltaSum();
+			}
+			// else this is an output node
+			else {
+				
+			}
 		}
 	}
 
 	// Update the weights between parents node and current node
 	public void updateWeight(double learningRate) {
 		if (type == 2 || type == 4) {
-			
+			for(NodeWeightPair p : parents) {
+				p.weight = p.weight +  delta;
+			}
 		}
 	}
 }

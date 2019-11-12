@@ -82,6 +82,7 @@ public class NNImpl {
      */
 
     public int predict(Instance instance) {
+    	
         // TODO: add code here
         return 0;
     }
@@ -94,6 +95,14 @@ public class NNImpl {
      */
 
     public void train() {
+    	
+    	// 1a. shuffle 
+    	
+    	// 1. predict 
+    	
+    	// 2 . update the weights
+    	
+    	
         // TODO: add code here
     }
 
