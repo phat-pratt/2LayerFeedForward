@@ -33,6 +33,7 @@ public class NNImpl {
         inputNodes = new ArrayList<>();
         int inputNodeCount = trainingSet.get(0).attributes.size();
         int outputNodeCount = trainingSet.get(0).classValues.size();
+        System.out.println("num input nodes: " + inputNodeCount + "\nNum  output nodes: " + outputNodeCount);
         for (int i = 0; i < inputNodeCount; i++) {
             Node node = new Node(0);
             inputNodes.add(node);
@@ -49,11 +50,9 @@ public class NNImpl {
             //Connecting hidden layer nodes with input layer nodes
             
             for (int j = 0; j < inputNodes.size(); j++) {
-            	System.out.print(hiddenWeights[i][j] + " ");
                 NodeWeightPair nwp = new NodeWeightPair(inputNodes.get(j), hiddenWeights[i][j]);
                 node.parents.add(nwp);
             }
-            System.out.println();
             hiddenNodes.add(node);
         }
 
@@ -82,12 +81,38 @@ public class NNImpl {
      */
 
     public int predict(Instance instance) {
-    	
-        // TODO: add code here
-        return 0;
+    	double max = 0.0;
+    	int ans = 0;
+    	for(int i = 0; i < inputNodes.size() - 1; i++) {
+    		inputNodes.get(i).setInput(instance.attributes.get(i));
+    	}
+    	for(int i = 0; i < hiddenNodes.size() - 1; i++) {
+    		hiddenNodes.get(i).calculateOutput();
+    	}
+    	max = 0.0;
+    	for (int i = 0; i < outputNodes.size(); i++) {
+    		outputNodes.get(i).calculateOutput();
+    		double o = outputNodes.get(i).getOutput();
+    		
+    		if(o > max) {
+    			max = o;
+    			ans = i;
+    		}
+    	}
+        return ans;
     }
 
-
+    public void forwardPass(Instance instance) {
+    	for(int i = 0; i < inputNodes.size() - 1; i++) {
+    		inputNodes.get(i).setInput(instance.attributes.get(i));
+    	}
+    	for(int i = 0; i < hiddenNodes.size() - 1; i++) {
+    		hiddenNodes.get(i).calculateOutput();
+    	}
+    	for (int i = 0; i < outputNodes.size(); i++) {
+    		outputNodes.get(i).calculateOutput();
+    	}
+    }
     /**
      * Train the neural networks with the given parameters
      * <p>
@@ -96,13 +121,40 @@ public class NNImpl {
 
     public void train() {
     	
-    	// 1a. shuffle 
-    	
-    	// 1. predict 
-    	
-    	// 2 . update the weights
-    	
-    	
+    	for(int i = 0; i < maxEpoch; i ++) {
+			// 1a. shuffle 
+			Collections.shuffle(trainingSet, random);
+			// 1. predict 
+			double totalLoss = 0.0;
+			for(Instance instance : trainingSet) {
+				// forward pass. At each hidden unit use the ReLU activation function
+				forwardPass(instance);
+				
+				// backward pass. for each hidden unit, and output unit, compute delta x
+				for(Node h : hiddenNodes) {
+					h.calculateDelta();
+				}
+				for(Node o : outputNodes) {
+					o.calculateDelta();
+				}
+				// update weights
+				for(Node h : hiddenNodes) {
+					h.updateWeight(learningRate);
+				}
+				for(Node o : outputNodes) {
+					o.updateWeight(learningRate);
+				}
+				
+				// calculate error (Cross Entropy Loss) at each output unit
+			}
+			for(Instance instance : trainingSet) {
+				totalLoss += loss(instance);
+			}
+
+			// 2 . update the weights
+			totalLoss = totalLoss/trainingSet.size();
+			System.out.println("Epoch: " + i + ", Loss: " + String.format("%.3e", totalLoss));
+    	}
         // TODO: add code here
     }
 
@@ -112,7 +164,12 @@ public class NNImpl {
      * The parameter is a single instance
      */
     private double loss(Instance instance) {
-        // TODO: add code here
-        return -1.0;
+    	double totalLoss = 0.0;
+    	for(int i = 0; i < instance.classValues.size(); i++) {
+    		if(instance.classValues.get(i) != 0) {
+    			return -Math.log(outputNodes.get(i).getOutput());
+    		}
+    	}
+    	return -1.0;
     }
 }

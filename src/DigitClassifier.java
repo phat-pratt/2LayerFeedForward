@@ -23,7 +23,7 @@ public class DigitClassifier {
 
         //Reading the training set
         ArrayList<Instance> trainingSet = getData(args[3]);
-
+        
         //Create a random number
         Random random = new Random(0);
 
@@ -31,7 +31,6 @@ public class DigitClassifier {
         Double[][] hiddenWeights = new Double[Integer.parseInt(args[0])][];
 
         for (int i = 0; i < hiddenWeights.length; i++) {
-        	System.out.println(trainingSet.get(0).attributes.size() + 1);
             hiddenWeights[i] = new Double[trainingSet.get(0).attributes.size() + 1];
         }
 
