@@ -76,7 +76,6 @@ public class Node {
 
 	// Gets the output value
 	public double getOutput() {
-
 		if (type == 0) { // Input node
 			return inputValue;
 		} else if (type == 1 || type == 3) { // Bias node
@@ -95,10 +94,12 @@ public class Node {
 				if(getWeightedSum() <= 0) {
 					delta = 0;
 				}
+
 			}
 			// else this is an output node
 			else {
 				delta = expected-getOutput();
+
 				for(NodeWeightPair p : parents) {
 					p.node.delta += p.weight*delta;
 				}
@@ -110,7 +111,7 @@ public class Node {
 	public void updateWeight(double learningRate) {
 		if (type == 2 || type == 4) {
 			for(NodeWeightPair p : parents) {
-				p.weight = p.weight + delta*getOutput()*learningRate;
+				p.weight = p.weight + delta*p.node.getOutput()*learningRate;
 			}
 			delta = 0;
 		

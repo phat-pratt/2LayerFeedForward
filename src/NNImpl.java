@@ -33,7 +33,6 @@ public class NNImpl {
         inputNodes = new ArrayList<>();
         int inputNodeCount = trainingSet.get(0).attributes.size();
         int outputNodeCount = trainingSet.get(0).classValues.size();
-        System.out.println("num input nodes: " + inputNodeCount + "\nNum  output nodes: " + outputNodeCount);
         for (int i = 0; i < inputNodeCount; i++) {
             Node node = new Node(0);
             inputNodes.add(node);
@@ -139,7 +138,6 @@ public class NNImpl {
 					Node o = outputNodes.get(j);
 					o.calculateDelta(instance.classValues.get(j));
 				}
-				
 				for(Node h : hiddenNodes) {
 					h.calculateDelta(0);
 				}
@@ -150,8 +148,6 @@ public class NNImpl {
 				for(Node h : hiddenNodes) {
 					h.updateWeight(learningRate);
 				}
-				
-				
 				// calculate error (Cross Entropy Loss) at each output unit
 			}
 			for(Instance instance : trainingSet) {
