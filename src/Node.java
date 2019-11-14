@@ -15,7 +15,6 @@ public class Node {
 	private double outputValue = 0.0;
 	private double outputGradient = 0.0;
 	private double delta = 0.0; // input gradient
-
 	// Create a node with a specific type
 	Node(int type) {
 		if (type > 4 || type < 0) {
@@ -42,7 +41,7 @@ public class Node {
 		double z = 0.0;
 		//calculate the weighted 
 		for(NodeWeightPair p : parents) {
-			z += (p.weight) * (p.node.inputValue); 
+			z += (p.weight) * (p.node.getOutput()); 
 		}
 		return z;		
 	}
@@ -65,18 +64,14 @@ public class Node {
 			}
 			// use Softmax
 			if(type == 4) {
-				double z = 0.0;
-				//calculate the weighted 
-				for(NodeWeightPair p : parents) {
-					z += (p.weight) * (p.node.outputValue); 
-				}
-				double ezj = Math.exp(z);
-				// need to normalize ezj
+				double ezj = Math.exp(getWeightedSum());
 				outputValue = ezj;
-				
 			}
 			
 		}
+	}
+	public void changeOutput(double div) {
+		outputValue = outputValue/div;
 	}
 
 	// Gets the output value
@@ -93,30 +88,19 @@ public class Node {
 	}
 	
 	// Calculate the delta value of a node.
-	public void calculateDelta() {
+	public void calculateDelta(int expected) {
 		if (type == 2 || type == 4) {
 			// if this is a hidden layer node 
 			if(type == 2) {
-				double z = 0.0;
-				for(NodeWeightPair p : parents) {
-					z += (p.weight) * (p.node.outputValue); 
-				}
-				if(z > 0) {
-					delta = 1;
-				} else {
+				if(getWeightedSum() <= 0) {
 					delta = 0;
 				}
 			}
 			// else this is an output node
 			else {
-				double z = 0.0;
+				delta = expected-getOutput();
 				for(NodeWeightPair p : parents) {
-					z += (p.weight) * (p.node.outputValue); 
-				}
-				if(z > 0) {
-					delta = 1;
-				} else {
-					delta = 0;
+					p.node.delta += p.weight*delta;
 				}
 			}
 		}
@@ -125,14 +109,11 @@ public class Node {
 	// Update the weights between parents node and current node
 	public void updateWeight(double learningRate) {
 		if (type == 2 || type == 4) {
-			if(type == 2) {
-				
+			for(NodeWeightPair p : parents) {
+				p.weight = p.weight + delta*getOutput()*learningRate;
 			}
-			else {
-				for(NodeWeightPair p : parents) {
-					p.weight = (p.weight - delta);
-				}
-			}
+			delta = 0;
+		
 		}
 	}
 }

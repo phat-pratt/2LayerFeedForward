@@ -72,7 +72,15 @@ public class NNImpl {
             outputNodes.add(node);
         }
     }
-
+    public void updateOutput() {
+    	double sum = 0.0;
+    	for(Node o : outputNodes) {
+    		sum += o.getOutput();
+    	}
+    	for(Node o : outputNodes) {
+    		o.changeOutput(sum);
+    	}
+    }
     /**
      * Get the prediction from the neural network for a single instance
      * Return the idx with highest output values. For example if the outputs
@@ -83,17 +91,9 @@ public class NNImpl {
     public int predict(Instance instance) {
     	double max = 0.0;
     	int ans = 0;
-    	for(int i = 0; i < inputNodes.size() - 1; i++) {
-    		inputNodes.get(i).setInput(instance.attributes.get(i));
-    	}
-    	for(int i = 0; i < hiddenNodes.size() - 1; i++) {
-    		hiddenNodes.get(i).calculateOutput();
-    	}
-    	max = 0.0;
+    	forwardPass(instance);
     	for (int i = 0; i < outputNodes.size(); i++) {
-    		outputNodes.get(i).calculateOutput();
     		double o = outputNodes.get(i).getOutput();
-    		
     		if(o > max) {
     			max = o;
     			ans = i;
@@ -111,8 +111,12 @@ public class NNImpl {
     	}
     	for (int i = 0; i < outputNodes.size(); i++) {
     		outputNodes.get(i).calculateOutput();
+    		
     	}
+    	updateOutput();
     }
+    
+    
     /**
      * Train the neural networks with the given parameters
      * <p>
@@ -120,30 +124,33 @@ public class NNImpl {
      */
 
     public void train() {
-    	
+
     	for(int i = 0; i < maxEpoch; i ++) {
+    		double totalLoss = 0.0;
+
 			// 1a. shuffle 
 			Collections.shuffle(trainingSet, random);
 			// 1. predict 
-			double totalLoss = 0.0;
 			for(Instance instance : trainingSet) {
 				// forward pass. At each hidden unit use the ReLU activation function
 				forwardPass(instance);
-				
 				// backward pass. for each hidden unit, and output unit, compute delta x
+				for(int j = 0; j < outputNodes.size(); j++) {
+					Node o = outputNodes.get(j);
+					o.calculateDelta(instance.classValues.get(j));
+				}
+				
 				for(Node h : hiddenNodes) {
-					h.calculateDelta();
+					h.calculateDelta(0);
 				}
 				for(Node o : outputNodes) {
-					o.calculateDelta();
+					o.updateWeight(learningRate);
 				}
 				// update weights
 				for(Node h : hiddenNodes) {
 					h.updateWeight(learningRate);
 				}
-				for(Node o : outputNodes) {
-					o.updateWeight(learningRate);
-				}
+				
 				
 				// calculate error (Cross Entropy Loss) at each output unit
 			}
@@ -164,12 +171,13 @@ public class NNImpl {
      * The parameter is a single instance
      */
     private double loss(Instance instance) {
-    	double totalLoss = 0.0;
+    	double sum = 0.0;
+    	forwardPass(instance);
     	for(int i = 0; i < instance.classValues.size(); i++) {
     		if(instance.classValues.get(i) != 0) {
-    			return -Math.log(outputNodes.get(i).getOutput());
+    			return  -Math.log(outputNodes.get(i).getOutput());
     		}
     	}
-    	return -1.0;
+    	return sum;
     }
 }
